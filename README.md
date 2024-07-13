@@ -1,88 +1,111 @@
-# DifferNet
+# Semi-Supervised Defect Detection with Normalizing Flows
 
-This is the non-official repository to the WACV 2021 paper "[Same Same But DifferNet: Semi-Supervised Defect Detection with Normalizing Flows](
-https://arxiv.org/abs/2008.12577)" by Marco Rudolph, Bastian Wandt and Bodo Rosenhahn.
+This project applies the Same Same But DifferNet model for semi-supervised defect detection on the BTAD and MVTec datasets. It is based on the WACV 2021 paper "Same Same But DifferNet: Semi-Supervised Defect Detection with Normalizing Flows" by Marco Rudolph, Bastian Wandt and Bodo Rosenhahn.
 
 ## Getting Started
 
-You will need [Python 3.6](https://www.python.org/downloads) and the packages specified in _requirements.txt_.
-We recommend setting up a [virtual environment with pip](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
-and installing the packages there.
+### Prerequisites
 
-Install packages with:
+- Python 3.6 or higher
+- NVIDIA GPU (We used an NVIDIA L4 GPU with 24GB GPU RAM)
+- 16 CPUs or more recommended
+
+### Installation
+
+1. Clone this repository
+2. Set up a virtual environment (recommended)
+3. Install the required packages:
+
+```bash
+pip install -r requirements.txt
+```
+
+## Dataset Preparation
+
+The model expects the following directory structure for each dataset:
 
 ```
-$ pip install -r requirements.txt
+dataset_directory/
+    class_01/
+        test/
+            anomaly/
+            good/
+        train/
+            good/
+    class_02/
+        ...
 ```
 
-## Configure and Run
+Prepare your BTAD and MVTec datasets according to this structure.
 
-All configurations concerning data, model, training, visualization etc. can be made in _config.py_. The default configuration will run a training with paper-given parameters on the provided dummy dataset. This dataset contains images of 4 squares as normal examples and 4 circles as anomaly.
+## Configuration
 
-To start the training, just run _main.py_! If training on the dummy data does not lead to an AUROC of 1.0, something seems to be wrong. Don't be worried if the loss is negative. The loss reflects the negative log likelihood which may be negative.
-Please report us if you have issues when using the code.
+All configurations can be made in `config.py`. Key parameters include:
 
-## Data
+- `meta_epochs = 24`
+- `sub_epochs = 8`
 
-The given dummy dataset shows how the implementation expects the construction of a dataset. Coincidentally, the [MVTec AD dataset](https://www.mvtec.com/company/research/datasets/mvtec-ad) is constructed in this way.
+Modify the main and config files as needed to suit your dataset classes and enable training across all classes.
 
-Set the variables _dataset_path_ and _class_name_ in _config.py_ to run experiments on a dataset of your choice. The expected structure of the data is as follows:
+## Training
 
-``` 
-train data:
+To start the training, run:
 
-        dataset_path/class_name/train/good/any_filename.png
-        dataset_path/class_name/train/good/another_filename.tif
-        dataset_path/class_name/train/good/xyz.png
-        [...]
+```bash
+python main.py
+```
 
-test data:
+We used the [Lightning AI](https://lightning.ai) platform for GPU resources during training.
 
-    'normal data' = non-anomalies
+## Results
 
-        dataset_path/class_name/test/good/name_the_file_as_you_like_as_long_as_there_is_an_image_extension.webp
-        dataset_path/class_name/test/good/did_you_know_the_image_extension_webp?.png
-        dataset_path/class_name/test/good/did_you_know_that_filenames_may_contain_question_marks????.png
-        dataset_path/class_name/test/good/dont_know_how_it_is_with_windows.png
-        dataset_path/class_name/test/good/just_dont_use_windows_for_this.png
-        [...]
+### BTAD Dataset Results
 
-    anomalies - assume there are anomaly classes 'crack' and 'curved'
+| Class    | Max AUROC | Max AUROC Epoch |
+|----------|-----------|-----------------|
+| class_01 | 0.9903    | 5               |
+| class_02 | 0.8298    | 5               |
+| class_03 | 0.9870    | 20              |
 
-        dataset_path/class_name/test/crack/dat_crack_damn.png
-        dataset_path/class_name/test/crack/let_it_crack.png
-        dataset_path/class_name/test/crack/writing_docs_is_fun.png
-        [...]
+### MVTec Dataset Results
 
-        dataset_path/class_name/test/curved/wont_make_a_difference_if_you_put_all_anomalies_in_one_class.png
-        dataset_path/class_name/test/curved/but_this_code_is_practicable_for_the_mvtec_dataset.png
-        [...]
-``` 
+| Class      | Last AUROC | Max AUROC | Max AUROC Epoch |
+|------------|------------|-----------|-----------------|
+| bottle     | 0.9881     | 0.9921    | 1               |
+| capsule    | 0.8089     | 0.8432    | 15              |
+| grid       | 0.7109     | 0.7937    | 3               |
+| leather    | 0.9813     | 0.9823    | 19              |
+| pill       | 0.8669     | 0.8792    | 15              |
+| tile       | 0.9751     | 0.9978    | 13              |
+| transistor | 0.8983     | 0.9142    | 19              |
+| zipper     | 0.9249     | 0.9359    | 16              |
+| cable      | 0.9496     | 0.9665    | 19              |
+| carpet     | 0.9057     | 0.9109    | 21              |
+| hazelnut   | 0.9939     | 0.9979    | 19              |
+| metal_nut  | 0.9580     | 0.9619    | 15              |
+| screw      | 0.9424     | 0.9572    | 17              |
+| toothbrush | 0.9722     | 0.9833    | 16              |
+| wood       | 0.9930     | 0.9974    | 17              |
+
 
 ## Credits
 
-Some code of the [FrEIA framework](https://github.com/VLL-HD/FrEIA) was used for the implementation of Normalizing Flows. Follow [their tutorial](https://github.com/VLL-HD/FrEIA) if you need more documentation about it.
-
+This project builds upon the work of Marco Rudolph, Bastian Wandt, and Bodo Rosenhahn. Some code from the FrEIA framework was used for the implementation of Normalizing Flows.
 
 ## Citation
-Please cite our paper in your publications if it helps your research. Even if it does not, you are welcome to cite us.
 
-    @inproceedings { RudWan2021,
+If you use this work in your research, please cite the original paper:
+
+```bibtex
+@inproceedings{RudWan2021,
     author = {Marco Rudolph and Bastian Wandt and Bodo Rosenhahn},
     title = {Same Same But DifferNet: Semi-Supervised Defect Detection with Normalizing Flows},
     booktitle = {Winter Conference on Applications of Computer Vision (WACV)},
     year = {2021},
     month = jan
-    }
-    
-Another paper link because you missed the first one:
-
-* [Same Same But DifferNet: Semi-Supervised Defect Detection with Normalizing Flows](
-https://arxiv.org/abs/2008.12577)
-
+}
+```
 
 ## License
 
 This project is licensed under the MIT License.
-
- 
